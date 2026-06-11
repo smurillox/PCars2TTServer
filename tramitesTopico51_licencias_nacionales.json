@@ -1,0 +1,72 @@
+[
+    {
+        "TramiteId": 36,
+        "pTopicoID": 51,
+        "Nombre": "Duplicado de licencia",
+        "Descripcion": null,
+        "Porcentaje": 0,
+        "Duracion": null,
+        "Activo": true,
+        "Topico": null,
+        "TipoTramites": null,
+        "Citas": null,
+        "RequisitoTramites": null,
+        "Calendarios": null
+    },
+    {
+        "TramiteId": 120,
+        "pTopicoID": 51,
+        "Nombre": "Licencia por homologación",
+        "Descripcion": "LICENCIA POR HOMOLOGACIÓN",
+        "Porcentaje": 0,
+        "Duracion": null,
+        "Activo": true,
+        "Topico": null,
+        "TipoTramites": null,
+        "Citas": null,
+        "RequisitoTramites": null,
+        "Calendarios": null
+    },
+    {
+        "TramiteId": 33,
+        "pTopicoID": 51,
+        "Nombre": "Licencia por primera vez",
+        "Descripcion": null,
+        "Porcentaje": 0,
+        "Duracion": null,
+        "Activo": true,
+        "Topico": null,
+        "TipoTramites": null,
+        "Citas": null,
+        "RequisitoTramites": null,
+        "Calendarios": null
+    },
+    {
+        "TramiteId": 35,
+        "pTopicoID": 51,
+        "Nombre": "Permiso de conducir",
+        "Descripcion": null,
+        "Porcentaje": 0,
+        "Duracion": null,
+        "Activo": true,
+        "Topico": null,
+        "TipoTramites": null,
+        "Citas": null,
+        "RequisitoTramites": null,
+        "Calendarios": null
+    },
+    {
+        "TramiteId": 34,
+        "pTopicoID": 51,
+        "Nombre": "Renovacion de licencia",
+        "Descripcion": null,
+        "Porcentaje": 0,
+        "Duracion": null,
+        "Activo": true,
+        "Topico": null,
+        "TipoTramites": null,
+        "Citas": null,
+        "RequisitoTramites": null,
+        "Calendarios": null
+    }
+]

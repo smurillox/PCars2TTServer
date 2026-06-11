@@ -1,0 +1,72 @@
+[
+    {
+        "TramiteId": 59,
+        "pTopicoID": 52,
+        "Nombre": "Pasaporte extraviado/robado en Costa Rica",
+        "Descripcion": null,
+        "Porcentaje": 0,
+        "Duracion": null,
+        "Activo": true,
+        "Topico": null,
+        "TipoTramites": null,
+        "Citas": null,
+        "RequisitoTramites": null,
+        "Calendarios": null
+    },
+    {
+        "TramiteId": 55,
+        "pTopicoID": 52,
+        "Nombre": "Pasaporte nuevo",
+        "Descripcion": null,
+        "Porcentaje": 0,
+        "Duracion": null,
+        "Activo": true,
+        "Topico": null,
+        "TipoTramites": null,
+        "Citas": null,
+        "RequisitoTramites": null,
+        "Calendarios": null
+    },
+    {
+        "TramiteId": 57,
+        "pTopicoID": 52,
+        "Nombre": "Renovacion por deterioro",
+        "Descripcion": null,
+        "Porcentaje": 0,
+        "Duracion": null,
+        "Activo": true,
+        "Topico": null,
+        "TipoTramites": null,
+        "Citas": null,
+        "RequisitoTramites": null,
+        "Calendarios": null
+    },
+    {
+        "TramiteId": 56,
+        "pTopicoID": 52,
+        "Nombre": "Renovación por folios",
+        "Descripcion": null,
+        "Porcentaje": 0,
+        "Duracion": null,
+        "Activo": true,
+        "Topico": null,
+        "TipoTramites": null,
+        "Citas": null,
+        "RequisitoTramites": null,
+        "Calendarios": null
+    },
+    {
+        "TramiteId": 58,
+        "pTopicoID": 52,
+        "Nombre": "Renovacion por vencimiento",
+        "Descripcion": null,
+        "Porcentaje": 0,
+        "Duracion": null,
+        "Activo": true,
+        "Topico": null,
+        "TipoTramites": null,
+        "Citas": null,
+        "RequisitoTramites": null,
+        "Calendarios": null
+    }
+]

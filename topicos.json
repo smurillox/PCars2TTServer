@@ -1,0 +1,67 @@
+[
+    {
+        "pTopicoID": 55,
+        "pNombre": "Cédula DIMEX",
+        "Maximo": 10000,
+        "Activo": true,
+        "Porcentaje": false,
+        "pServicioID": 23,
+        "FkServicio": null,
+        "Citas": null,
+        "Tramites": null,
+        "SistemaCitasBCR": null,
+        "ExcepcionTopicos": null
+    },
+    {
+        "pTopicoID": 51,
+        "pNombre": "Licencias nacionales",
+        "Maximo": 10000,
+        "Activo": true,
+        "Porcentaje": false,
+        "pServicioID": 23,
+        "FkServicio": null,
+        "Citas": null,
+        "Tramites": null,
+        "SistemaCitasBCR": null,
+        "ExcepcionTopicos": null
+    },
+    {
+        "pTopicoID": 124,
+        "pNombre": "Licencias residentes",
+        "Maximo": 1000000000,
+        "Activo": true,
+        "Porcentaje": true,
+        "pServicioID": 23,
+        "FkServicio": null,
+        "Citas": null,
+        "Tramites": null,
+        "SistemaCitasBCR": null,
+        "ExcepcionTopicos": null
+    },
+    {
+        "pTopicoID": 52,
+        "pNombre": "Pasaportes mayores de edad",
+        "Maximo": 1000,
+        "Activo": true,
+        "Porcentaje": false,
+        "pServicioID": 23,
+        "FkServicio": null,
+        "Citas": null,
+        "Tramites": null,
+        "SistemaCitasBCR": null,
+        "ExcepcionTopicos": null
+    },
+    {
+        "pTopicoID": 54,
+        "pNombre": "Pasaportes menor de edad",
+        "Maximo": 1000,
+        "Activo": true,
+        "Porcentaje": false,
+        "pServicioID": 23,
+        "FkServicio": null,
+        "Citas": null,
+        "Tramites": null,
+        "SistemaCitasBCR": null,
+        "ExcepcionTopicos": null
+    }
+]
