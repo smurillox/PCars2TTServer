@@ -95,41 +95,56 @@ def obtenerFechas(servicioId, topicoId, mesObjetivo):
             for response_item in responsebody:
                 dt = datetime.strptime(response_item, "%m/%d/%Y")
                 if dt.month == mesObjetivo:
-                    #aggregated_responses.append(response_item)
-                    aggregated_responses[sucursalId].append(response_item)                    
+                    aggregated_responses[sucursalId].append(response_item)
                     month_name = dt.strftime("%B")
                     print(f'Cita en {month_name} encontrada: {dt.strftime("%x")} {sucursal["pNombre"]}')
-                    break
     else:
         print("Error: 'sucursales' is not defined.")
     
     return aggregated_responses
 
 def obtenerHoras(servicioId, topicoId, tramiteId, provinciaId, sucursalId, fechaObtenida):
-    data = {
-    token_name: token_value,
-    'pServicioID': servicioId,
-    'pTopicoID': topicoId,
-    'TramiteId': tramiteId,
-    'pProvinciaID': provinciaId,
-    'pSucursalID': sucursalId,
-    'sFecha': fechaObtenida,
-    }
-    #print(data)
+    global cookies
+
     try:
+        cookies = obtenerCookies()
+
+        data = {
+            'pServicioID': servicioId,
+            'pTopicoID': topicoId,
+            'TramiteId': tramiteId,
+            'pProvinciaID': provinciaId,
+            'pSucursalID': sucursalId,
+            'sFecha': fechaObtenida,
+        }
+
+        if token_name is not None and token_value is not None:
+            data[token_name] = token_value
+
         response = requests.post(bcrhorasURL, cookies=cookies, data=data, headers=myheadersHora, verify=cert_path)
         response.raise_for_status()
-        #print(response.status_code)
+
         soup = BeautifulSoup(response.content, 'html.parser')
         table = soup.find('table', {'id': 'listaInicial'})
+        if table is None:
+            print(f"No se encontró la tabla de horas para la fecha {fechaObtenida}.")
+            return []
+
+        tbody = table.find('tbody')
+        if tbody is None:
+            print(f"No se encontró el cuerpo de la tabla de horas para la fecha {fechaObtenida}.")
+            return []
+
         date_values = []
-        for row in table.find('tbody').find_all('tr'):
+        for row in tbody.find_all('tr'):
             date_cell = row.find('td')
-            date_values.append(date_cell.text.strip())
-        #print(response.content)
-    except (requests.RequestException, json.JSONDecodeError) as e:
-        print(f"Error fetching or parsing response: {e}")        
-    return date_values
+            if date_cell is not None:
+                date_values.append(date_cell.text.strip())
+
+        return date_values
+    except (requests.RequestException, json.JSONDecodeError, AttributeError) as e:
+        print(f"Error fetching or parsing response for {fechaObtenida}: {e}")
+        return []
 
 def obtenerCookies():
     global token_name, token_value
@@ -146,7 +161,7 @@ def obtenerCookies():
 
 filtered_sucursales = filter_sucursales(sucursales, provinciaObjetivo, sucursalObjetivo)
 aggregated_responses = obtenerFechas(servicioId, topicoId, mesObjetivo)
-print(aggregated_responses)
+#print(aggregated_responses)
 cookies = obtenerCookies()
 all_horas = {}
 for sucursalId, fechas in aggregated_responses.items():
