@@ -3,3 +3,4 @@ bin/
 obj/
 *.user
 *.suo
+src/Pcars2Collector/logs/
