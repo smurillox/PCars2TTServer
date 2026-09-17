@@ -1,0 +1,16 @@
+using Pcars2Collector;
+
+var builder = Host.CreateApplicationBuilder(args);
+
+builder.Services.AddHttpClient<ITelemetrySource, Crest2Client>(client =>
+{
+    var baseUrl = builder.Configuration["Pcars2:Crest2BaseUrl"] ?? "http://127.0.0.1:8180/";
+    client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
+    client.Timeout = TimeSpan.FromMilliseconds(500);
+});
+
+builder.Services.AddSingleton<LapDetector>();
+builder.Services.AddSingleton<LapEventFileWriter>();
+builder.Services.AddHostedService<CollectorWorker>();
+
+await builder.Build().RunAsync();
