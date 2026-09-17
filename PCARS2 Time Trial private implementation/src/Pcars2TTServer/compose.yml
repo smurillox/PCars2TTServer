@@ -1,0 +1,33 @@
+services:
+  mysql:
+    image: docker.io/library/mysql:8.4
+    container_name: pcars2tt-mysql
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-pcars2tt}
+      MYSQL_USER: ${MYSQL_USER:-pcars2tt}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?MYSQL_PASSWORD must be set}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD must be set}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  pcars2tt-server:
+    build:
+      context: ../..
+      dockerfile: src/Pcars2TTServer/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      ConnectionStrings__MySql: Server=mysql;Port=3306;Database=${MYSQL_DATABASE:-pcars2tt};User ID=${MYSQL_USER:-pcars2tt};Password=${MYSQL_PASSWORD:?MYSQL_PASSWORD must be set};
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  mysql-data:

@@ -8,6 +8,12 @@ builder.Services.AddHttpClient<ITelemetrySource, Crest2Client>(client =>
     client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
     client.Timeout = TimeSpan.FromMilliseconds(500);
 });
+builder.Services.AddHttpClient<ILapEventSink, HttpLapEventSink>(client =>
+{
+    var baseUrl = builder.Configuration["Pcars2:BackendBaseUrl"] ?? "http://127.0.0.1:8080/";
+    client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
+    client.Timeout = TimeSpan.FromSeconds(5);
+});
 
 builder.Services.AddSingleton<LapDetector>();
 builder.Services.AddSingleton<LapEventFileWriter>();

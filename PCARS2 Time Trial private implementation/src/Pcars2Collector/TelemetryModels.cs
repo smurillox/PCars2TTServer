@@ -2,6 +2,7 @@ namespace Pcars2Collector;
 
 public sealed record TelemetrySnapshot(
     int BuildVersion,
+    string Gamertag,
     string GameState,
     string SessionState,
     string RaceState,
@@ -16,6 +17,7 @@ public sealed record TelemetrySnapshot(
     long SourceTimestamp);
 
 public sealed record LapCompleted(
+    string Gamertag,
     string CarName,
     string CarClassName,
     string TrackLocation,

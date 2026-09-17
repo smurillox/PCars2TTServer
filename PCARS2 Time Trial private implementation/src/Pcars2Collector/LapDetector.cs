@@ -29,6 +29,7 @@ public sealed class LapDetector
         }
 
         return new LapCompleted(
+            snapshot.Gamertag,
             snapshot.CarName,
             snapshot.CarClassName,
             snapshot.TrackLocation,

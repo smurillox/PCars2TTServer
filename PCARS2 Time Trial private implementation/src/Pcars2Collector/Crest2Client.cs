@@ -22,7 +22,7 @@ public sealed class Crest2Client(HttpClient httpClient, ILogger<Crest2Client> lo
         try
         {
             var response = await httpClient.GetAsync(
-                "crest2/v1/api?buildInfo=true&gameStates=true&vehicleInformation=true&eventInformation=true&timings=true",
+                "crest2/v1/api?buildInfo=true&gameStates=true&participants=true&vehicleInformation=true&eventInformation=true&timings=true",
                 cancellationToken);
 
             if (response.StatusCode is HttpStatusCode.ServiceUnavailable or HttpStatusCode.Conflict)
@@ -55,6 +55,7 @@ public sealed class Crest2Client(HttpClient httpClient, ILogger<Crest2Client> lo
     {
         public BuildInfo? Buildinfo { get; init; }
         public GameStates? GameStates { get; init; }
+        public Participants? Participants { get; init; }
         public VehicleInformation? VehicleInformation { get; init; }
         public EventInformation? EventInformation { get; init; }
         public Timings? Timings { get; init; }
@@ -70,6 +71,7 @@ public sealed class Crest2Client(HttpClient httpClient, ILogger<Crest2Client> lo
 
             return new TelemetrySnapshot(
                 Buildinfo.Version,
+                Participants?.PlayerName ?? "unknown",
                 GameStates.GameState.ToString(),
                 GameStates.SessionState.ToString(),
                 GameStates.RaceState.ToString(),
@@ -105,6 +107,22 @@ public sealed class Crest2Client(HttpClient httpClient, ILogger<Crest2Client> lo
         public string CarName { get; init; } = "";
         [JsonPropertyName("mCarClassName")]
         public string CarClassName { get; init; } = "";
+    }
+    private sealed class Participants
+    {
+        [JsonPropertyName("mViewedParticipantIndex")]
+        public int ViewedParticipantIndex { get; init; }
+        [JsonPropertyName("mParticipantInfo")]
+        public List<ParticipantInfo> ParticipantInfo { get; init; } = [];
+
+        public string PlayerName => ViewedParticipantIndex >= 0 && ViewedParticipantIndex < ParticipantInfo.Count
+            ? ParticipantInfo[ViewedParticipantIndex].Name
+            : "unknown";
+    }
+    private sealed class ParticipantInfo
+    {
+        [JsonPropertyName("mName")]
+        public string Name { get; init; } = "";
     }
     private sealed class EventInformation
     {

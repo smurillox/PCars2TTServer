@@ -32,6 +32,7 @@ public sealed class LapDetectorTests
 
     private static TelemetrySnapshot Snapshot(double lastLapTime, bool invalidated) => new(
         9,
+        "Test Driver",
         "GAME_INGAME_PLAYING",
         "SESSION_TIME_ATTACK",
         "RACESTATE_RACING",

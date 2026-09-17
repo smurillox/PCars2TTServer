@@ -4,6 +4,7 @@ public sealed class CollectorWorker(
     ITelemetrySource telemetrySource,
     LapDetector lapDetector,
     LapEventFileWriter lapEventFileWriter,
+    ILapEventSink lapEventSink,
     ILogger<CollectorWorker> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -17,6 +18,7 @@ public sealed class CollectorWorker(
                 if (lap is not null && lap.Valid)
                 {
                     await lapEventFileWriter.WriteAsync(lap, stoppingToken);
+                    await lapEventSink.SendAsync(lap, stoppingToken);
                     logger.LogInformation(
                         "Lap completed: {Car} at {Track} in {LapTime} ms; valid={Valid}",
                         lap.CarName,
