@@ -49,3 +49,13 @@ podman exec -i pcars2tt-mysql mysql -u root -p"$MYSQL_ROOT_PASSWORD" pcars2tt < 
 ```
 
 The imported dump should create the `laptimes` table before the backend receives events. The backend also creates the table if it is absent.
+
+After importing and backing up the database, run the one-time historical cleanup:
+
+```bash
+podman exec -i pcars2tt-mysql \
+  mysql -u root -p"$MYSQL_ROOT_PASSWORD" pcars2tt \
+  < src/Pcars2TTServer/migrations/001_dedupe_laptimes.sql
+```
+
+This marks existing rows with a lap time as valid, keeps the fastest row for each normalized `gamertag + vehicle + track + game` combination, and removes rows without a lap time. A new combination is still inserted normally by the API.
