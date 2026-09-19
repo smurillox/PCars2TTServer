@@ -1,6 +1,12 @@
-# PCARS2 Time Trial Collector
+# PCARS2 Time Trial
 
-Windows-native collector for Project CARS 2 lap telemetry.
+Windows-native collector, MySQL-backed API, and web GUI for Project CARS 2 lap telemetry.
+
+## Services
+
+- `Pcars2Collector`: Windows process that reads PCARS2 telemetry and sends valid new laps.
+- `Pcars2TTServer`: API and MySQL persistence service on port `8080`.
+- `Pcars2TTWeb`: browser interface on port `8081` for filtering and browsing best laps.
 
 ## Current slice
 

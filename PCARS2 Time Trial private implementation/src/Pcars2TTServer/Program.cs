@@ -2,10 +2,27 @@ using Pcars2TTServer;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<LapRepository>();
+builder.Services.AddCors(options => options.AddPolicy("gui", policy =>
+    policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 
 var app = builder.Build();
+app.UseCors("gui");
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+
+app.MapGet("/api/laps/options", async (LapRepository repository, CancellationToken cancellationToken) =>
+    Results.Ok(await repository.GetFilterOptionsAsync(cancellationToken)));
+
+app.MapGet("/api/laps", async (
+    string? track,
+    string? vehicle,
+    string? vehicleClass,
+    string? gamertag,
+    int? limit,
+    LapRepository repository,
+    CancellationToken cancellationToken) =>
+    Results.Ok(await repository.QueryAsync(
+        new LapQuery(track, vehicle, vehicleClass, gamertag, limit ?? 500), cancellationToken)));
 
 app.MapPost("/api/laps", async (LapEventRequest request, LapRepository repository, CancellationToken cancellationToken) =>
 {

@@ -117,6 +117,90 @@ public sealed class LapRepository(IConfiguration configuration)
             previousBestMilliseconds, true, request.CapturedAt);
     }
 
+    public async Task<LapFilterOptions> GetFilterOptionsAsync(CancellationToken cancellationToken)
+    {
+        await using var connection = new MySqlConnection(connectionString);
+        await connection.OpenAsync(cancellationToken);
+
+        var tracks = await GetDistinctValuesAsync(connection, "track", cancellationToken);
+        var vehicles = await GetDistinctValuesAsync(connection, "vehicle", cancellationToken);
+        var classes = await GetDistinctValuesAsync(connection, "vehicleclass", cancellationToken);
+        var gamertags = await GetDistinctValuesAsync(connection, "gamertag", cancellationToken);
+        return new LapFilterOptions(tracks, vehicles, classes, gamertags);
+    }
+
+    public async Task<IReadOnlyList<LapRecord>> QueryAsync(LapQuery query, CancellationToken cancellationToken)
+    {
+        await using var connection = new MySqlConnection(connectionString);
+        await connection.OpenAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+
+        var filters = new List<string> { "laptime IS NOT NULL" };
+        AddOptionalFilter(command, filters, "track", "@track", query.Track);
+        AddOptionalFilter(command, filters, "vehicle", "@vehicle", query.Vehicle);
+        AddOptionalFilter(command, filters, "vehicleclass", "@vehicleclass", query.VehicleClass);
+        AddOptionalFilter(command, filters, "gamertag", "@gamertag", query.Gamertag);
+
+        command.CommandText = $"""
+            SELECT id, gamertag, vehicle, vehicleclass, track, laptime, lapdate, sessionmode, game
+            FROM laptimes
+            WHERE {string.Join(" AND ", filters)}
+            ORDER BY laptime ASC, id ASC
+            LIMIT @limit;
+            """;
+        command.Parameters.AddWithValue("@limit", Math.Clamp(query.Limit, 1, 1000));
+
+        var records = new List<LapRecord>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            records.Add(new LapRecord(
+                reader.GetInt64(0),
+                ReadString(reader, 1),
+                ReadString(reader, 2),
+                ReadString(reader, 3),
+                ReadString(reader, 4),
+                (long)Math.Round(reader.GetDouble(5) * 1000, MidpointRounding.AwayFromZero),
+                ParseDate(ReadString(reader, 6)),
+                ReadString(reader, 7),
+                ReadString(reader, 8)));
+        }
+
+        return records;
+    }
+
+    private static async Task<IReadOnlyList<string>> GetDistinctValuesAsync(
+        MySqlConnection connection,
+        string column,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = $"SELECT DISTINCT `{column}` FROM laptimes WHERE `{column}` IS NOT NULL AND TRIM(`{column}`) <> '' ORDER BY `{column}`;";
+        var values = new List<string>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            values.Add(reader.GetString(0));
+        }
+
+        return values;
+    }
+
+    private static void AddOptionalFilter(MySqlCommand command, List<string> filters, string column, string parameter, string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            filters.Add($"`{column}` = {parameter}");
+            command.Parameters.AddWithValue(parameter, value.Trim());
+        }
+    }
+
+    private static string ReadString(MySqlDataReader reader, int ordinal) =>
+        reader.IsDBNull(ordinal) ? "" : reader.GetString(ordinal);
+
+    private static DateTimeOffset? ParseDate(string value) =>
+        DateTimeOffset.TryParse(value, out var date) ? date : null;
+
     private static void AddKeyParameters(MySqlCommand command, string gamertag, string vehicle, string track, string game)
     {
         command.Parameters.AddWithValue("@gamertag", gamertag);

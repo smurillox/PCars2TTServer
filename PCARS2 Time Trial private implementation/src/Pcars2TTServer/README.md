@@ -6,6 +6,8 @@ HTTP API for receiving valid lap events from the Windows collector and keeping o
 
 - `GET /health`
 - `POST /api/laps`
+- `GET /api/laps/options`
+- `GET /api/laps?track=...&vehicle=...&vehicleClass=...&gamertag=...`
 
 Example request:
 
@@ -49,6 +51,12 @@ podman exec -i pcars2tt-mysql mysql -u root -p"$MYSQL_ROOT_PASSWORD" pcars2tt < 
 ```
 
 The imported dump should create the `laptimes` table before the backend receives events. The backend also creates the table if it is absent.
+
+The web GUI runs as a separate container on port `8081` and proxies API requests internally:
+
+```text
+http://<fedora-ip>:8081
+```
 
 After importing and backing up the database, run the one-time historical cleanup:
 

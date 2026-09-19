@@ -29,5 +29,15 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  pcars2tt-web:
+    build:
+      context: ../Pcars2TTWeb
+      dockerfile: Dockerfile
+    ports:
+      - "8081:80"
+    depends_on:
+      - pcars2tt-server
+    restart: unless-stopped
+
 volumes:
   mysql-data:
