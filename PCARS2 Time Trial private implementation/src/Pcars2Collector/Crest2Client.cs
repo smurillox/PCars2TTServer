@@ -10,7 +10,7 @@ public interface ITelemetrySource
     Task<TelemetrySnapshot?> ReadAsync(CancellationToken cancellationToken);
 }
 
-public sealed class Crest2Client(HttpClient httpClient, ILogger<Crest2Client> logger) : ITelemetrySource
+public sealed class Crest2Client(HttpClient httpClient, CollectorStatus status, ILogger<Crest2Client> logger) : ITelemetrySource
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
@@ -31,21 +31,25 @@ public sealed class Crest2Client(HttpClient httpClient, ILogger<Crest2Client> lo
             }
 
             response.EnsureSuccessStatusCode();
+            status.SetCrest2Available(true);
             var payload = await response.Content.ReadFromJsonAsync<Crest2Payload>(JsonOptions, cancellationToken);
             return payload?.ToSnapshot();
         }
         catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
+            status.SetCrest2Available(false);
             logger.LogDebug("PCARS2 telemetry bridge did not respond before the request timeout");
             return null;
         }
         catch (HttpRequestException exception)
         {
+            status.SetCrest2Available(false);
             logger.LogDebug(exception, "PCARS2 telemetry bridge is unavailable");
             return null;
         }
         catch (JsonException exception)
         {
+            status.SetCrest2Available(false);
             logger.LogWarning(exception, "PCARS2 telemetry bridge returned invalid JSON");
             return null;
         }

@@ -25,6 +25,9 @@ public static class LapKey
 {
     public static string Normalize(string value) => value.Trim().ToUpperInvariant();
 
+    public static string CanonicalTrack(string value) =>
+        Normalize(value).Replace(" / ", "-").Replace("/", "-");
+
     public static string Track(string location, string variation) =>
-        $"{Normalize(location)}|{Normalize(variation)}";
+        CanonicalTrack($"{location}-{variation}");
 }

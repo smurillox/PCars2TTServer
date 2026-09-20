@@ -5,6 +5,7 @@ public sealed class CollectorWorker(
     LapDetector lapDetector,
     LapEventFileWriter lapEventFileWriter,
     ILapEventSink lapEventSink,
+    CollectorStatus collectorStatus,
     ILogger<CollectorWorker> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -18,7 +19,9 @@ public sealed class CollectorWorker(
                 if (lap is not null && lap.Valid)
                 {
                     await lapEventFileWriter.WriteAsync(lap, stoppingToken);
-                    await lapEventSink.SendAsync(lap, stoppingToken);
+                    collectorStatus.RecordLap(new LapActivity(lap, LapDeliveryState.Captured, null, "Captured; sending...", DateTimeOffset.UtcNow));
+                    var delivery = await lapEventSink.SendAsync(lap, stoppingToken);
+                    collectorStatus.RecordLap(new LapActivity(lap, delivery.State, delivery.StatusCode, delivery.ResponseSummary, DateTimeOffset.UtcNow));
                     logger.LogInformation(
                         "Lap completed: {Car} at {Track} in {LapTime} ms; valid={Valid}",
                         lap.CarName,

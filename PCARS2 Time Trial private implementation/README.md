@@ -8,6 +8,8 @@ Windows-native collector, MySQL-backed API, and web GUI for Project CARS 2 lap t
 - `Pcars2TTServer`: API and MySQL persistence service on port `8080`.
 - `Pcars2TTWeb`: browser interface on port `8081` for filtering and browsing best laps.
 
+The collector opens a Windows status window showing CREST2 and backend connectivity, the latest captured lap, its backend result, and recent activity. It also shows a Windows notification after each backend response.
+
 ## Current slice
 
 The collector polls the local CREST2 bridge, detects a changed `mLastLapTime`, rejects no data at the source, and emits a normalized lap event in the log. The source boundary is isolated behind `ITelemetrySource` so the bridge can later be replaced with a direct `$pcars2$` memory-map reader.

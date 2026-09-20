@@ -7,8 +7,6 @@ public sealed class LapEventFileWriter(IHostEnvironment environment, ILogger<Lap
     public async Task WriteAsync(LapCompleted lap, CancellationToken cancellationToken)
     {
         var logDirectory = Path.Combine(environment.ContentRootPath, "logs");
-        Directory.CreateDirectory(logDirectory);
-
         var logPath = Path.Combine(logDirectory, "laps.log");
         var line = $"{lap.CapturedAt:O} | {(lap.Valid ? "VALID" : "INVALID")} | " +
                    $"{lap.CarName} | {lap.TrackLocation} / {lap.TrackVariation} | " +
@@ -17,6 +15,7 @@ public sealed class LapEventFileWriter(IHostEnvironment environment, ILogger<Lap
         await gate.WaitAsync(cancellationToken);
         try
         {
+            Directory.CreateDirectory(logDirectory);
             await File.AppendAllTextAsync(logPath, line, cancellationToken);
         }
         catch (IOException exception)

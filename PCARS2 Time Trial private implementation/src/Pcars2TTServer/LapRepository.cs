@@ -40,7 +40,7 @@ public sealed class LapRepository(IConfiguration configuration)
     {
         var gamertag = LapKey.Normalize(request.Gamertag);
         var vehicle = LapKey.Normalize(request.Vehicle);
-        var track = LapKey.Normalize(request.Track);
+        var track = LapKey.CanonicalTrack(request.Track);
         var game = LapKey.Normalize(request.Game);
         var lapTimeSeconds = request.LapTimeMilliseconds / 1000.0;
 
@@ -55,7 +55,7 @@ public sealed class LapRepository(IConfiguration configuration)
             FROM laptimes
             WHERE gamertag = @gamertag
               AND vehicle = @vehicle
-              AND track = @track
+              AND UPPER(REPLACE(REPLACE(TRIM(track), ' / ', '-'), '/', '-')) = @track
               AND game = @game
               AND validlap IN ('1', 'true', 'TRUE')
             ORDER BY laptime ASC
@@ -86,7 +86,10 @@ public sealed class LapRepository(IConfiguration configuration)
         deleteCommand.Transaction = transaction;
         deleteCommand.CommandText = """
             DELETE FROM laptimes
-            WHERE gamertag = @gamertag AND vehicle = @vehicle AND track = @track AND game = @game;
+                        WHERE gamertag = @gamertag
+                            AND vehicle = @vehicle
+                            AND UPPER(REPLACE(REPLACE(TRIM(track), ' / ', '-'), '/', '-')) = @track
+                            AND game = @game;
             """;
         AddKeyParameters(deleteCommand, gamertag, vehicle, track, game);
         await deleteCommand.ExecuteNonQueryAsync(cancellationToken);
@@ -105,7 +108,7 @@ public sealed class LapRepository(IConfiguration configuration)
         insertCommand.Parameters.AddWithValue("@gamertag", gamertag);
         insertCommand.Parameters.AddWithValue("@vehicle", vehicle);
         insertCommand.Parameters.AddWithValue("@vehicleclass", request.VehicleClass.Trim());
-        insertCommand.Parameters.AddWithValue("@track", track);
+        insertCommand.Parameters.AddWithValue("@track", request.Track.Trim());
         insertCommand.Parameters.AddWithValue("@laptime", lapTimeSeconds);
         insertCommand.Parameters.AddWithValue("@lapdate", request.CapturedAt.UtcDateTime.ToString("O"));
         insertCommand.Parameters.AddWithValue("@sessionmode", request.SessionMode.Trim());
@@ -136,7 +139,7 @@ public sealed class LapRepository(IConfiguration configuration)
         await using var command = connection.CreateCommand();
 
         var filters = new List<string> { "laptime IS NOT NULL" };
-        AddOptionalFilter(command, filters, "track", "@track", query.Track);
+        AddOptionalTrackFilter(command, filters, query.Track);
         AddOptionalFilter(command, filters, "vehicle", "@vehicle", query.Vehicle);
         AddOptionalFilter(command, filters, "vehicleclass", "@vehicleclass", query.VehicleClass);
         AddOptionalFilter(command, filters, "gamertag", "@gamertag", query.Gamertag);
@@ -192,6 +195,15 @@ public sealed class LapRepository(IConfiguration configuration)
         {
             filters.Add($"`{column}` = {parameter}");
             command.Parameters.AddWithValue(parameter, value.Trim());
+        }
+    }
+
+    private static void AddOptionalTrackFilter(MySqlCommand command, List<string> filters, string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            filters.Add("UPPER(REPLACE(REPLACE(TRIM(`track`), ' / ', '-'), '/', '-')) = @track");
+            command.Parameters.AddWithValue("@track", LapKey.CanonicalTrack(value));
         }
     }
 

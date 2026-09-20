@@ -1,3 +1,4 @@
+using System.Windows.Forms;
 using Pcars2Collector;
 
 var builder = Host.CreateApplicationBuilder(args);
@@ -17,6 +18,14 @@ builder.Services.AddHttpClient<ILapEventSink, HttpLapEventSink>(client =>
 
 builder.Services.AddSingleton<LapDetector>();
 builder.Services.AddSingleton<LapEventFileWriter>();
+builder.Services.AddSingleton<CollectorStatus>();
+builder.Services.AddSingleton<CollectorForm>();
 builder.Services.AddHostedService<CollectorWorker>();
 
-await builder.Build().RunAsync();
+using var host = builder.Build();
+await host.StartAsync();
+
+var form = host.Services.GetRequiredService<CollectorForm>();
+Application.Run(form);
+
+await host.StopAsync();
