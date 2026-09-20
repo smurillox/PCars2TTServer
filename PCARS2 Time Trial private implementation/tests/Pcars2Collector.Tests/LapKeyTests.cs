@@ -9,7 +9,7 @@ public sealed class LapKeyTests
     public void TreatsSlashAndDashTrackSeparatorsAsEquivalent()
     {
         Assert.Equal(
-            LapKey.CanonicalTrack("Willow_Springs / INTERNATIONAL_RACEWAY"),
+            LapKey.CanonicalTrack("Willow_Springs / International_Raceway"),
             LapKey.CanonicalTrack("Willow_Springs-International_Raceway"));
     }
 }

@@ -55,7 +55,7 @@ public sealed class LapRepository(IConfiguration configuration)
             FROM laptimes
             WHERE gamertag = @gamertag
               AND vehicle = @vehicle
-              AND UPPER(REPLACE(REPLACE(TRIM(track), ' / ', '-'), '/', '-')) = @track
+              AND UPPER(REPLACE(REPLACE(TRIM(track), ' / ', '-'), '/', '-')) = UPPER(@track)
               AND game = @game
               AND validlap IN ('1', 'true', 'TRUE')
             ORDER BY laptime ASC
@@ -88,7 +88,7 @@ public sealed class LapRepository(IConfiguration configuration)
             DELETE FROM laptimes
                         WHERE gamertag = @gamertag
                             AND vehicle = @vehicle
-                            AND UPPER(REPLACE(REPLACE(TRIM(track), ' / ', '-'), '/', '-')) = @track
+                              AND UPPER(REPLACE(REPLACE(TRIM(track), ' / ', '-'), '/', '-')) = UPPER(@track)
                             AND game = @game;
             """;
         AddKeyParameters(deleteCommand, gamertag, vehicle, track, game);
@@ -108,7 +108,7 @@ public sealed class LapRepository(IConfiguration configuration)
         insertCommand.Parameters.AddWithValue("@gamertag", gamertag);
         insertCommand.Parameters.AddWithValue("@vehicle", vehicle);
         insertCommand.Parameters.AddWithValue("@vehicleclass", request.VehicleClass.Trim());
-        insertCommand.Parameters.AddWithValue("@track", request.Track.Trim());
+        insertCommand.Parameters.AddWithValue("@track", track);
         insertCommand.Parameters.AddWithValue("@laptime", lapTimeSeconds);
         insertCommand.Parameters.AddWithValue("@lapdate", request.CapturedAt.UtcDateTime.ToString("O"));
         insertCommand.Parameters.AddWithValue("@sessionmode", request.SessionMode.Trim());

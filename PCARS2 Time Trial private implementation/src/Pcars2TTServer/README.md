@@ -67,3 +67,11 @@ podman exec -i pcars2tt-mysql \
 ```
 
 This marks existing rows with a lap time as valid, keeps the fastest row for each normalized `gamertag + vehicle + track + game` combination, and removes rows without a lap time. A new combination is still inserted normally by the API.
+
+To normalize existing slash-separated track values after the separator fix:
+
+```bash
+podman exec -i pcars2tt-mysql \
+  mysql -u root -p"$MYSQL_ROOT_PASSWORD" pcars2tt \
+  < src/Pcars2TTServer/migrations/002_normalize_track_separators.sql
+```
