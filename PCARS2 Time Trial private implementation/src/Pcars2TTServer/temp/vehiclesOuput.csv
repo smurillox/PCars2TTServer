@@ -1,0 +1,186 @@
+vehicle,vehicleclass
+Porsche 917/10,CanAm
+Ford Mustang RTR Spec - 5D,Drift
+Mazda MX-5 Radbul,Drift
+Ferrari F355 Challenge,F355
+Formula Rookie,F5
+Formula A,FA
+Formula B,FB
+Formula C,FC
+Ferrari 488 Challenge (APAC),Ferrari
+Ferrari 488 Challenge (EU),Ferrari
+Ferrari 488 Challenge (NA),Ferrari
+Ferrari F355 Challenge,Ferrari F355 Series
+Ferrari 488 Challenge (APAC),Ferrari Series
+Ferrari 488 Challenge (EU),Ferrari Series
+Ferrari 488 Challenge (NA),Ferrari Series
+Formula A,Formula A
+Formula C,Formula C
+Formula Renault 3.5,Formula Renault
+Formula X,Formula X
+Formula Renault 3.5,FR35
+Formula X,FX
+Ginetta G40 Junior,G40 Jr
+Ginetta G40 Junior,G40 Junior
+BMW M1 Procar,Gr. 4
+Ferrari 512 BB LM,Gr. 4
+Porsche 924 Carrera GTP,Gr. 4
+BMW 320 Turbo Group 5,Gr. 5
+Datsun 280ZX IMSA GTX,Gr. 5
+Nissan Skyline Super Silhouette,Gr. 5
+Porsche 935/77,Gr. 5
+Porsche 935/78,Gr. 5
+Porsche 935/78-81,Gr. 5
+Porsche 935/80,Gr. 5
+Zakspeed Ford Capri Group 5,Gr. 5
+Porsche 936 Spyder,Gr. 6
+Renault Alpine A442B,Gr. 6
+Audi V8 quattro DTM,Gr. A
+BMW M3 Sport Evo Group A,Gr. A
+Ford Sierra Cosworth RS500 Group A,Gr. A
+Mercedes-Benz 190E 2.5-16 Evolution 2 DTM,Gr. A
+Nissan Skyline GT-R (BNR32) Group A,Gr. A
+Audi Sport quattro S1,Gr. B
+Ford RS200 Evolution Group B,Gr. B
+Renault 5 Maxi Turbo,Gr. B
+Jaguar XJR-9,Gr. C
+Jaguar XJR-9 LM,Gr. C
+Nissan GTP ZX-Turbo,Gr. C
+Nissan R89C,Gr. C
+Nissan R89C LM,Gr. C
+Porsche 962C,Gr. C
+Porsche 962C Langheck,Gr. C
+Sauber C9 LM Mercedes-Benz,Gr. C
+Sauber C9 Mercedes-Benz,Gr. C
+BMW M1 Procar,Group 4
+Ferrari 512 BB LM,Group 4
+Porsche 924 Carrera GTP,Group 4
+BMW 320 Turbo Group 5,Group 5
+Datsun 280ZX IMSA GTX,Group 5
+Nissan Skyline Super Silhouette,Group 5
+Porsche 935/77,Group 5
+Porsche 935/78,Group 5
+Porsche 935/78-81,Group 5
+Porsche 935/80,Group 5
+Zakspeed Ford Capri Group 5,Group 5
+Porsche 936 Spyder,Group 6
+Renault Alpine A442B,Group 6
+Audi V8 quattro DTM,Group A
+BMW M3 E30 Group A,Group A
+BMW M3 Sport Evo Group A,Group A
+Ford Sierra Cosworth RS500 Group A,Group A
+Mercedes-Benz 190E 2.5-16 Evolution 2 DTM,Group A
+Nissan Skyline GT-R (BNR32) Group A,Group A
+Audi Sport quattro S1,Group B
+Ford RS200 Evolution Group B,Group B
+Renault 5 Maxi Turbo,Group B
+Jaguar XJR-9,Group C1
+Jaguar XJR-9 LM,Group C1
+Nissan GTP ZX-Turbo,Group C1
+Nissan R89C,Group C1
+Nissan R89C LM,Group C1
+Porsche 962C,Group C1
+Porsche 962C Langheck,Group C1
+Sauber C9 LM Mercedes-Benz,Group C1
+Sauber C9 Mercedes-Benz,Group C1
+Ferrari F50 GT,GT1
+McLaren F1 GTR Long Tail,GT1
+Mercedes-Benz CLK-LM,GT1
+Nissan R390 GT1,GT1
+Panoz Esperante GTR1,GT1
+Porsche 911 GT1-98,GT1
+Toyota GT-One (1998),GT1
+Acura NSX GT3,GT3
+Aston Martin Vantage GT3,GT3
+Audi R8 LMS,GT3
+Audi R8 LMS Endurance,GT3
+Bentley Continental GT3 (2015),GT3
+Bentley Continental GT3 (2016),GT3
+Bentley Continental GT3 Endurance,GT3
+BMW M6 GT3,GT3
+BMW Z4 GT3,GT3
+Cadillac ATS-V.R GT3,GT3
+Ferrari 488 GT3,GT3
+Ginetta G55 GT3,GT3
+LamborghiniHuracanGT3,GT3
+McLaren 650S GT3,GT3
+Mercedes-AMG GT3,GT3
+Mercedes-Benz SLS AMG GT3,GT3
+Nissan GT-R Nismo GT3 (R35),GT3
+Porsche 911 GT3 R,GT3
+Porsche 911 GT3 R Endurance,GT3
+Renault Sport R.S. 01 GT3,GT3
+Ruf RGT-8 GT3,GT3
+Aston Martin Vantage GT4,GT4
+BMW M3 GT4 (E92),GT4
+Ford Mustang Boss 302R,GT4
+Ford Mustang RTR GT4,GT4
+Ginetta G55 GT4,GT4
+KTM X-Bow GT4,GT4
+Porsche Cayman GT4 Clubsport MR,GT4
+Toyota GT-86 Rocket Bunny GT4,GT4
+Ginetta G40 GT5,GT5
+Aston Martin Vantage GTE,GTE
+BMW M6 GTLM,GTE
+Chevrolet Corvette C7.R,GTE
+Ferrari 488 GTE,GTE
+Ford GT LM GTE,GTE
+Porsche 911 RSR,GTE
+Audi 90 quattro IMSA GTO,GTO
+Ferrari F40 LM,GTO
+Ford Mustang Cobra TransAm,GTO
+Lamborghini Diablo GTR,GTO
+Nissan 300ZX Turbo IMSA GTS,GTO
+Nissan 300ZX Turbo LM,GTO
+Porsche 961,GTO
+Dallara IR-12 Chevrolet (Road Course),Indy
+Dallara IR-12 Chevrolet (Speedway),Indy
+Dallara IR-12 Honda (Road Course),Indy
+Dallara IR-12 Honda (Speedway),Indy
+Dallara IR-12 Chevrolet (Road Course),Indycar
+Dallara IR-12 Chevrolet (Speedway),Indycar
+Dallara IR-12 Honda (Road Course),Indycar
+Dallara IR-12 Honda (Speedway),Indycar
+Kart,Kart1
+Audi R18 e-tron quattro (2014),LMP1
+Marek RP 339H LMP1,LMP1
+RWD P30 LMP1,LMP1
+Toyota TS040 Hybrid,LMP1
+Audi R18 (Fuji 2016),LMP1 2016
+Audi R18 (Le Mans 2016),LMP1 2016
+Porsche 919 Hybrid,LMP1 2016
+Toyota TS050 Hybrid,LMP1 2016
+Ligier JS P2 Honda,LMP2
+Ligier JS P2 Judd,LMP2
+Ligier JS P2 Nissan,LMP2
+Marek RP 219D LMP2,LMP2
+Oreca 03 Nissan,LMP2
+RWD P20 LMP2,LMP2
+Ginetta LMP3,LMP3
+Ligier JS P3,LMP3
+Audi R8,LMP900
+Bentley Speed 8,LMP900
+BMW V12 LMR,LMP900
+Ferrari 333 SP,LMP900
+Toyota GT-One (1999),LMP900
+RenaultMeganeTrophyV6,Megane Trophy
+RenaultMeganeTrophyV6,Megane Trophy
+Ford Fusion Stockcar,Modern Stockcar
+Ferrari F12tdf,Road A
+Ferrari LaFerrari,Road A
+McLaren 720S,Road A
+McLaren P1,Road A
+Pagani Huayra BC,Road A
+Porsche 918 Spyder Weissach,Road A
+Radical RXC Turbo,Road A
+BAC Mono,Road B
+Ferrari 458 Speciale A,Road B
+Ferrari Enzo,Road B
+Ford GT,Road B
+Jaguar XJ220 S,Road B
+Lamborghini Aventador LP700-4,Road B
+Lamborghini Veneno LP750-4,Road B
+McLaren F1,Road B
+Pagani Zonda Cinque Roadster,Road B
+Porsche 911 GT3 RS,Road B
+Acura NS

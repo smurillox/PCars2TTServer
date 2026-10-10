@@ -28,6 +28,8 @@ Example request:
 
 The server uses the supplied `laptimes` schema. It stores `lapTimeMilliseconds / 1000` in the schema's `laptime` `REAL` column. The comparison key is normalized `gamertag + vehicle + track + game`.
 
+For vehicle identity, the server resolves the game's raw vehicle name through `vehicle_aliases` to a stable `vehicles.vehicle_id`. Historical `laptimes.vehicle` remains populated with the canonical display name for compatibility, while `laptimes.vehicle_id` is the identity used for best-lap comparison. An unmapped vehicle is recorded as a pending alias and its lap is rejected with HTTP 422; no guessed vehicle record is created.
+
 Only a strictly faster valid lap is accepted. A slower or equal lap returns `409 Conflict` and leaves the existing row unchanged. An accepted improvement deletes all older matching rows and inserts the new best in one transaction.
 
 ## Fedora / Podman
@@ -51,6 +53,40 @@ podman exec -i pcars2tt-mysql mysql -u root -p"$MYSQL_ROOT_PASSWORD" pcars2tt < 
 ```
 
 The imported dump should create the `laptimes` table before the backend receives events. The backend also creates the table if it is absent.
+
+## Vehicle catalog migration
+
+Back up MySQL first, then stop the API and run the one-time migration. It seeds canonical PCars2 vehicles and aliases from historical names, adds/backfills `laptimes.vehicle_id`, and maps two high-confidence catalog aliases (`Audi R8 (LMP900)` to `Audi R8`, and `Nissan GT-R Nismo (R35)` to `Nissan GT-R Nismo`). The query at the end lists historical rows that did not resolve; inspect those before starting the updated API.
+
+```bash
+podman compose -f src/Pcars2TTServer/compose.yml stop pcars2tt-server
+podman cp src/Pcars2TTServer/migrations/003_vehicle_alias_catalog.sql \
+  pcars2tt-mysql:/tmp/003_vehicle_alias_catalog.sql
+podman exec -it pcars2tt-mysql mysql -u root -p pcars2tt
+```
+
+At the MySQL `mysql>` prompt, run:
+
+```sql
+SOURCE /tmp/003_vehicle_alias_catalog.sql;
+```
+
+Wait for the migration to finish, then exit MySQL with `\q`. Enter the MySQL password only at its prompt. Copying the script into the container first lets `SOURCE` read it without piping over the password prompt.
+
+Back at Fedora's shell, start the updated API:
+
+```bash
+podman compose -f src/Pcars2TTServer/compose.yml up --build --force-recreate -d pcars2tt-server
+```
+
+The migration updates the 1.2M-row PCars2 lap table. It creates an index first and backfills using exact indexed aliases; allow it to finish and do not run it a second time because the `ALTER TABLE` section is intentionally one-shot. Review pending live names with:
+
+```sql
+SELECT game, alias_name, normalized_name, observation_count, last_seen_at
+FROM vehicle_aliases
+WHERE vehicle_id IS NULL
+ORDER BY game, alias_name;
+```
 
 The web GUI runs as a separate container on port `8081` and proxies API requests internally:
 

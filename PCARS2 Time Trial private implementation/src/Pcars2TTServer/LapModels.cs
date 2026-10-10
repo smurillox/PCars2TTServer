@@ -31,3 +31,19 @@ public static class LapKey
     public static string Track(string location, string variation) =>
         CanonicalTrack($"{location}-{variation}");
 }
+
+public static class VehicleKey
+{
+    public static string Normalize(string value) =>
+        System.Text.RegularExpressions.Regex.Replace(value.Trim().ToUpperInvariant(), "[^A-Z0-9]", "");
+}
+
+public sealed record ResolvedVehicle(long Id, string CanonicalName);
+
+public sealed class UnknownVehicleAliasException(string game, string vehicle)
+    : Exception($"Vehicle '{vehicle}' for game '{game}' is not mapped in the vehicle catalog.")
+{
+    public string Game { get; } = game;
+    public string Vehicle { get; } = vehicle;
+}
+

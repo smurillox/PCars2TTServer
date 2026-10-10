@@ -17,6 +17,7 @@ public sealed class LapRepository(IConfiguration configuration)
                 id INTEGER PRIMARY KEY AUTO_INCREMENT,
                 gamertag TEXT NULL,
                 vehicle TEXT NULL,
+                vehicle_id BIGINT NULL,
                 vehicleclass TEXT NULL,
                 track TEXT NULL,
                 laptime REAL NULL,
@@ -30,22 +31,57 @@ public sealed class LapRepository(IConfiguration configuration)
                 controller TEXT NULL,
                 game TEXT NULL DEFAULT NULL,
                 INDEX vehiculos (game(100), vehicleclass(100), vehicle(100)),
+                INDEX ix_laptimes_driver_vehicle_best (game(32), gamertag(96), vehicle_id, track(96), laptime),
                 INDEX tracks (game(100), track(100))
             ) ENGINE=InnoDB;
             """;
         await command.ExecuteNonQueryAsync(cancellationToken);
+
+        await using var vehicleCatalogCommand = connection.CreateCommand();
+        vehicleCatalogCommand.CommandText = """
+            CREATE TABLE IF NOT EXISTS vehicles (
+                vehicle_id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                game VARCHAR(64) NOT NULL,
+                canonical_name VARCHAR(255) NOT NULL,
+                normalized_name VARCHAR(255) NOT NULL,
+                created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                UNIQUE KEY uq_vehicles_game_normalized (game, normalized_name)
+            ) ENGINE=InnoDB;
+
+            CREATE TABLE IF NOT EXISTS vehicle_aliases (
+                alias_id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                game VARCHAR(64) NOT NULL,
+                alias_name VARCHAR(255) NOT NULL,
+                normalized_name VARCHAR(255) NOT NULL,
+                vehicle_id BIGINT NULL,
+                first_seen_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                last_seen_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                observation_count BIGINT NOT NULL DEFAULT 1,
+                UNIQUE KEY uq_vehicle_alias_game_name (game, alias_name),
+                KEY ix_vehicle_alias_normalized (game, normalized_name),
+                CONSTRAINT fk_vehicle_alias_vehicle FOREIGN KEY (vehicle_id) REFERENCES vehicles(vehicle_id)
+            ) ENGINE=InnoDB;
+            """;
+        await vehicleCatalogCommand.ExecuteNonQueryAsync(cancellationToken);
     }
 
     public async Task<LapEventResponse> InsertIfNewBestAsync(LapEventRequest request, CancellationToken cancellationToken)
     {
         var gamertag = LapKey.Normalize(request.Gamertag);
-        var vehicle = LapKey.Normalize(request.Vehicle);
         var track = LapKey.CanonicalTrack(request.Track);
-        var game = LapKey.Normalize(request.Game);
+        var game = request.Game.Trim();
         var lapTimeSeconds = request.LapTimeMilliseconds / 1000.0;
 
         await using var connection = new MySqlConnection(connectionString);
         await connection.OpenAsync(cancellationToken);
+
+        var resolvedVehicle = await ResolveVehicleAsync(connection, game, request.Vehicle, cancellationToken);
+        if (resolvedVehicle is null)
+        {
+            await RecordUnmappedVehicleAsync(connection, game, request.Vehicle, cancellationToken);
+            throw new UnknownVehicleAliasException(game, request.Vehicle);
+        }
+
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
         await using var bestCommand = connection.CreateCommand();
@@ -54,7 +90,7 @@ public sealed class LapRepository(IConfiguration configuration)
             SELECT id, laptime
             FROM laptimes
             WHERE gamertag = @gamertag
-              AND vehicle = @vehicle
+                            AND vehicle_id = @vehicle_id
               AND UPPER(REPLACE(REPLACE(TRIM(track), ' / ', '-'), '/', '-')) = UPPER(@track)
               AND game = @game
               AND validlap IN ('1', 'true', 'TRUE')
@@ -62,7 +98,7 @@ public sealed class LapRepository(IConfiguration configuration)
             LIMIT 1
             FOR UPDATE;
             """;
-        AddKeyParameters(bestCommand, gamertag, vehicle, track, game);
+        AddKeyParameters(bestCommand, gamertag, resolvedVehicle.Id, track, game);
 
         long? previousBestId = null;
         long? previousBestMilliseconds = null;
@@ -87,26 +123,27 @@ public sealed class LapRepository(IConfiguration configuration)
         deleteCommand.CommandText = """
             DELETE FROM laptimes
                         WHERE gamertag = @gamertag
-                            AND vehicle = @vehicle
+                            AND vehicle_id = @vehicle_id
                               AND UPPER(REPLACE(REPLACE(TRIM(track), ' / ', '-'), '/', '-')) = UPPER(@track)
                             AND game = @game;
             """;
-        AddKeyParameters(deleteCommand, gamertag, vehicle, track, game);
+        AddKeyParameters(deleteCommand, gamertag, resolvedVehicle.Id, track, game);
         await deleteCommand.ExecuteNonQueryAsync(cancellationToken);
 
         await using var insertCommand = connection.CreateCommand();
         insertCommand.Transaction = transaction;
         insertCommand.CommandText = """
             INSERT INTO laptimes
-                (gamertag, vehicle, vehicleclass, track, laptime, lapdate,
+                (gamertag, vehicle, vehicle_id, vehicleclass, track, laptime, lapdate,
                  sessionmode, validlap, game)
             VALUES
-                (@gamertag, @vehicle, @vehicleclass, @track, @laptime, @lapdate,
+                (@gamertag, @vehicle, @vehicle_id, @vehicleclass, @track, @laptime, @lapdate,
                  @sessionmode, '1', @game);
             SELECT LAST_INSERT_ID();
             """;
         insertCommand.Parameters.AddWithValue("@gamertag", gamertag);
-        insertCommand.Parameters.AddWithValue("@vehicle", vehicle);
+        insertCommand.Parameters.AddWithValue("@vehicle", resolvedVehicle.CanonicalName);
+        insertCommand.Parameters.AddWithValue("@vehicle_id", resolvedVehicle.Id);
         insertCommand.Parameters.AddWithValue("@vehicleclass", request.VehicleClass.Trim());
         insertCommand.Parameters.AddWithValue("@track", track);
         insertCommand.Parameters.AddWithValue("@laptime", lapTimeSeconds);
@@ -118,6 +155,55 @@ public sealed class LapRepository(IConfiguration configuration)
         await transaction.CommitAsync(cancellationToken);
         return new LapEventResponse(id, gamertag, track, request.LapTimeMilliseconds,
             previousBestMilliseconds, true, request.CapturedAt);
+    }
+
+    private static async Task<ResolvedVehicle?> ResolveVehicleAsync(
+        MySqlConnection connection,
+        string game,
+        string rawVehicleName,
+        CancellationToken cancellationToken)
+    {
+        var normalizedName = VehicleKey.Normalize(rawVehicleName);
+        if (normalizedName.Length == 0)
+        {
+            return null;
+        }
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT v.vehicle_id, v.canonical_name
+            FROM vehicle_aliases AS a
+            INNER JOIN vehicles AS v ON v.vehicle_id = a.vehicle_id
+            WHERE a.game = @game AND a.normalized_name = @normalized_name
+            LIMIT 1;
+            """;
+        command.Parameters.AddWithValue("@game", game);
+        command.Parameters.AddWithValue("@normalized_name", normalizedName);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        return await reader.ReadAsync(cancellationToken)
+            ? new ResolvedVehicle(reader.GetInt64(0), reader.GetString(1))
+            : null;
+    }
+
+    private static async Task RecordUnmappedVehicleAsync(
+        MySqlConnection connection,
+        string game,
+        string rawVehicleName,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            INSERT INTO vehicle_aliases (game, alias_name, normalized_name, vehicle_id)
+            VALUES (@game, @alias_name, @normalized_name, NULL)
+            ON DUPLICATE KEY UPDATE
+                last_seen_at = CURRENT_TIMESTAMP(6),
+                observation_count = observation_count + 1;
+            """;
+        command.Parameters.AddWithValue("@game", game);
+        command.Parameters.AddWithValue("@alias_name", rawVehicleName.Trim());
+        command.Parameters.AddWithValue("@normalized_name", VehicleKey.Normalize(rawVehicleName));
+        await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
     public async Task<LapFilterOptions> GetFilterOptionsAsync(CancellationToken cancellationToken)
@@ -213,10 +299,10 @@ public sealed class LapRepository(IConfiguration configuration)
     private static DateTimeOffset? ParseDate(string value) =>
         DateTimeOffset.TryParse(value, out var date) ? date : null;
 
-    private static void AddKeyParameters(MySqlCommand command, string gamertag, string vehicle, string track, string game)
+    private static void AddKeyParameters(MySqlCommand command, string gamertag, long vehicleId, string track, string game)
     {
         command.Parameters.AddWithValue("@gamertag", gamertag);
-        command.Parameters.AddWithValue("@vehicle", vehicle);
+        command.Parameters.AddWithValue("@vehicle_id", vehicleId);
         command.Parameters.AddWithValue("@track", track);
         command.Parameters.AddWithValue("@game", game);
     }

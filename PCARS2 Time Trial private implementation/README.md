@@ -33,7 +33,17 @@ The collector polls at 10 Hz and logs valid completed laps. Invalidated laps are
 
 Valid completed laps are also appended to `src/Pcars2Collector/logs/laps.log` and posted to the Fedora backend configured by `Pcars2:BackendBaseUrl`. Invalidated laps are not written or forwarded; the frequent telemetry polling logs remain in the console.
 
-Tests are under `tests/Pcars2Collector.Tests` and cover lap completion transitions and invalidated laps.
+## Vehicle and track catalog capture
+
+Run the collector in catalog-only mode while gathering the names reported by the game:
+
+```powershell
+dotnet run --project .\src\Pcars2Collector\Pcars2Collector.csproj -- --catalog
+```
+
+Select each vehicle and track in PCARS2 while the catalog window is open. It shows the current CREST2 names and counts, and appends each distinct vehicle/class or track/variation pair to `logs/vehicle-track-catalog.csv` under the collector's working directory. Repeated telemetry samples are deduplicated. Catalog mode does not detect laps or contact the backend. The CSV preserves the raw game names for building the vehicle and track tables and their aliases.
+
+Tests are under `tests/Pcars2Collector.Tests` and cover lap completion transitions, invalidated laps, and catalog deduplication.
 
 ## Next steps
 

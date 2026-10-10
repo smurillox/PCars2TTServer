@@ -6,6 +6,7 @@ namespace Pcars2Collector;
 public sealed class CollectorForm : Form
 {
     private readonly CollectorStatus status;
+    private readonly bool catalogMode;
     private readonly Label crest2Value = StatusValue();
     private readonly Label backendValue = StatusValue();
     private readonly Label latestValue = new();
@@ -15,10 +16,11 @@ public sealed class CollectorForm : Form
     private readonly System.Windows.Forms.Timer refreshTimer;
     private DateTimeOffset? lastNotification;
 
-    public CollectorForm(CollectorStatus status)
+    public CollectorForm(CollectorStatus status, bool catalogMode)
     {
         this.status = status;
-        Text = "PCARS2 Time Trial Collector";
+        this.catalogMode = catalogMode;
+        Text = catalogMode ? "PCARS2 Vehicle and Track Catalog" : "PCARS2 Time Trial Collector";
         StartPosition = FormStartPosition.CenterScreen;
         ClientSize = new Size(760, 500);
         MinimumSize = new Size(620, 420);
@@ -29,7 +31,7 @@ public sealed class CollectorForm : Form
         notifyIcon = new NotifyIcon
         {
             Icon = SystemIcons.Application,
-            Text = "PCARS2 Time Trial Collector",
+            Text = catalogMode ? "PCARS2 Catalog Collector" : "PCARS2 Time Trial Collector",
             Visible = true
         };
         notifyIcon.DoubleClick += (_, _) => RestoreWindow();
@@ -54,17 +56,22 @@ public sealed class CollectorForm : Form
             Padding = new Padding(28),
             BackColor = BackColor,
             ColumnCount = 1,
-            RowCount = 4
+            RowCount = catalogMode ? 3 : 4
         };
         root.RowStyles.Add(new RowStyle(SizeType.Absolute, 78));
         root.RowStyles.Add(new RowStyle(SizeType.Absolute, 105));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 88));
-        root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        root.RowStyles.Add(catalogMode
+            ? new RowStyle(SizeType.Percent, 100)
+            : new RowStyle(SizeType.Absolute, 88));
+        if (!catalogMode)
+        {
+            root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        }
         Controls.Add(root);
 
         var title = new Label
         {
-            Text = "PCARS2  /  TIME TRIAL COLLECTOR",
+            Text = catalogMode ? "PCARS2  /  VEHICLE & TRACK CATALOG" : "PCARS2  /  TIME TRIAL COLLECTOR",
             Dock = DockStyle.Fill,
             Font = new Font("Segoe UI", 18F, FontStyle.Bold),
             ForeColor = Color.FromArgb(215, 243, 106),
@@ -76,30 +83,33 @@ public sealed class CollectorForm : Form
         services.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
         services.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
         services.Controls.Add(ServicePanel("CREST2", crest2Value), 0, 0);
-        services.Controls.Add(ServicePanel("BACKEND", backendValue), 1, 0);
+        services.Controls.Add(ServicePanel(catalogMode ? "UNIQUE NAMES  /  logs/vehicle-track-catalog.csv" : "BACKEND", backendValue), 1, 0);
         root.Controls.Add(services, 0, 1);
 
         var latest = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 2, Padding = new Padding(0, 8, 0, 8) };
         latest.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 140));
         latest.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        latest.Controls.Add(Caption("LATEST LAP"), 0, 0);
+        latest.Controls.Add(Caption(catalogMode ? "CURRENT VEHICLE / CLASS" : "LATEST LAP"), 0, 0);
         latest.Controls.Add(latestValue, 1, 0);
-        latest.Controls.Add(Caption("BACKEND RESPONSE"), 0, 1);
+        latest.Controls.Add(Caption(catalogMode ? "CURRENT TRACK / VARIATION" : "BACKEND RESPONSE"), 0, 1);
         latest.Controls.Add(responseValue, 1, 1);
         root.Controls.Add(latest, 0, 2);
 
-        activityList.Dock = DockStyle.Fill;
-        activityList.View = View.Details;
-        activityList.FullRowSelect = true;
-        activityList.GridLines = true;
-        activityList.BackColor = Color.FromArgb(22, 32, 31);
-        activityList.ForeColor = ForeColor;
-        activityList.BorderStyle = BorderStyle.None;
-        activityList.Columns.Add("TIME", 90);
-        activityList.Columns.Add("LAP", 100);
-        activityList.Columns.Add("DRIVER / VEHICLE", 250);
-        activityList.Columns.Add("RESULT", 220);
-        root.Controls.Add(activityList, 0, 3);
+        if (!catalogMode)
+        {
+            activityList.Dock = DockStyle.Fill;
+            activityList.View = View.Details;
+            activityList.FullRowSelect = true;
+            activityList.GridLines = true;
+            activityList.BackColor = Color.FromArgb(22, 32, 31);
+            activityList.ForeColor = ForeColor;
+            activityList.BorderStyle = BorderStyle.None;
+            activityList.Columns.Add("TIME", 90);
+            activityList.Columns.Add("LAP", 100);
+            activityList.Columns.Add("DRIVER / VEHICLE", 250);
+            activityList.Columns.Add("RESULT", 220);
+            root.Controls.Add(activityList, 0, 3);
+        }
     }
 
     private static Panel ServicePanel(string name, Label value)
@@ -117,6 +127,18 @@ public sealed class CollectorForm : Form
     {
         var snapshot = status.Snapshot();
         SetStatus(crest2Value, snapshot.Crest2Available);
+        if (catalogMode)
+        {
+            backendValue.Text = $"{snapshot.CatalogVehicleCount} vehicles / {snapshot.CatalogTrackCount} tracks";
+            backendValue.ForeColor = Color.FromArgb(215, 243, 106);
+            if (snapshot.LatestCatalogSnapshot is { } catalog)
+            {
+                latestValue.Text = $"{catalog.CarName}  /  {catalog.CarClassName}";
+                responseValue.Text = $"{catalog.TrackLocation}  /  {catalog.TrackVariation}";
+            }
+            return;
+        }
+
         SetStatus(backendValue, snapshot.BackendAvailable);
 
         if (snapshot.LatestLap is not null)
@@ -166,6 +188,7 @@ public sealed class CollectorForm : Form
     {
         LapDeliveryState.Accepted => Color.FromArgb(215, 243, 106),
         LapDeliveryState.Rejected => Color.FromArgb(255, 190, 115),
+        LapDeliveryState.Unmapped => Color.FromArgb(255, 190, 115),
         LapDeliveryState.Failed => Color.FromArgb(255, 155, 120),
         _ => Color.FromArgb(145, 160, 153)
     };

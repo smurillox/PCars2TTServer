@@ -5,6 +5,7 @@ public enum LapDeliveryState
     Captured,
     Accepted,
     Rejected,
+    Unmapped,
     Failed
 }
 
@@ -19,7 +20,10 @@ public sealed record CollectorStatusSnapshot(
     bool Crest2Available,
     bool BackendAvailable,
     LapActivity? LatestLap,
-    IReadOnlyList<LapActivity> RecentLaps);
+    IReadOnlyList<LapActivity> RecentLaps,
+    TelemetrySnapshot? LatestCatalogSnapshot,
+    int CatalogVehicleCount,
+    int CatalogTrackCount);
 
 public sealed class CollectorStatus
 {
@@ -28,6 +32,9 @@ public sealed class CollectorStatus
     private bool crest2Available;
     private bool backendAvailable;
     private LapActivity? latestLap;
+    private TelemetrySnapshot? latestCatalogSnapshot;
+    private int catalogVehicleCount;
+    private int catalogTrackCount;
 
     public event EventHandler? Changed;
 
@@ -63,6 +70,17 @@ public sealed class CollectorStatus
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
+    public void RecordCatalogSnapshot(TelemetrySnapshot snapshot, int vehicleCount, int trackCount)
+    {
+        lock (gate)
+        {
+            latestCatalogSnapshot = snapshot;
+            catalogVehicleCount = vehicleCount;
+            catalogTrackCount = trackCount;
+        }
+        Changed?.Invoke(this, EventArgs.Empty);
+    }
+
     public CollectorStatusSnapshot Snapshot()
     {
         lock (gate)
@@ -71,7 +89,10 @@ public sealed class CollectorStatus
                 crest2Available,
                 backendAvailable,
                 latestLap,
-                recentLaps.ToArray());
+                recentLaps.ToArray(),
+                latestCatalogSnapshot,
+                catalogVehicleCount,
+                catalogTrackCount);
         }
     }
 }

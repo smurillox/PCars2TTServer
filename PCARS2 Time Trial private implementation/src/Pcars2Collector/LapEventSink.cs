@@ -20,13 +20,21 @@ public sealed class HttpLapEventSink(HttpClient httpClient, CollectorStatus stat
                 Vehicle = lap.CarName,
                 VehicleClass = lap.CarClassName,
                 Track = $"{lap.TrackLocation} / {lap.TrackVariation}",
-                Game = "Project CARS 2",
+                Game = "PCars2",
                 SessionMode = "Time Attack",
                 lap.LapTimeMilliseconds,
                 ValidLap = lap.Valid,
                 lap.CapturedAt,
                 lap.SourceTimestamp
             }, cancellationToken);
+
+            if (response.StatusCode == HttpStatusCode.UnprocessableEntity)
+            {
+                status.SetBackendAvailable(true);
+                logger.LogWarning("Backend has no vehicle mapping for {Vehicle}", lap.CarName);
+                return new LapDeliveryResult(LapDeliveryState.Unmapped, (int)response.StatusCode,
+                    $"Vehicle needs catalog mapping: {lap.CarName}");
+            }
 
             if (response.StatusCode == HttpStatusCode.Conflict)
             {

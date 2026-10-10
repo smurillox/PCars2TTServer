@@ -35,10 +35,23 @@ app.MapPost("/api/laps", async (LapEventRequest request, LapRepository repositor
         return Results.BadRequest(new { error = "Gamertag, Vehicle, Track, ValidLap=true, and a positive LapTimeMilliseconds are required." });
     }
 
-    var response = await repository.InsertIfNewBestAsync(request, cancellationToken);
-    return response.IsNewBest
-        ? Results.Created($"/api/laps/{response.Id}", response)
-        : Results.Conflict(response);
+    try
+    {
+        var response = await repository.InsertIfNewBestAsync(request, cancellationToken);
+        return response.IsNewBest
+            ? Results.Created($"/api/laps/{response.Id}", response)
+            : Results.Conflict(response);
+    }
+    catch (UnknownVehicleAliasException exception)
+    {
+        return Results.UnprocessableEntity(new
+        {
+            error = exception.Message,
+            game = exception.Game,
+            vehicle = exception.Vehicle,
+            action = "Vehicle recorded for catalog review; lap was not stored."
+        });
+    }
 });
 
 app.Lifetime.ApplicationStarted.Register(() =>
