@@ -7,6 +7,8 @@ public sealed class CollectorForm : Form
 {
     private readonly CollectorStatus status;
     private readonly bool catalogMode;
+    private readonly string telemetrySourceName;
+    private readonly string collectorTitle;
     private readonly Label crest2Value = StatusValue();
     private readonly Label backendValue = StatusValue();
     private readonly Label latestValue = new();
@@ -16,11 +18,17 @@ public sealed class CollectorForm : Form
     private readonly System.Windows.Forms.Timer refreshTimer;
     private DateTimeOffset? lastNotification;
 
-    public CollectorForm(CollectorStatus status, bool catalogMode)
+    public CollectorForm(
+        CollectorStatus status,
+        bool catalogMode,
+        string telemetrySourceName = "CREST2",
+        string collectorTitle = "PCARS2 Time Trial Collector")
     {
         this.status = status;
         this.catalogMode = catalogMode;
-        Text = catalogMode ? "PCARS2 Vehicle and Track Catalog" : "PCARS2 Time Trial Collector";
+        this.telemetrySourceName = telemetrySourceName;
+        this.collectorTitle = collectorTitle;
+        Text = catalogMode ? "PCARS2 Vehicle and Track Catalog" : collectorTitle;
         StartPosition = FormStartPosition.CenterScreen;
         ClientSize = new Size(760, 500);
         MinimumSize = new Size(620, 420);
@@ -31,7 +39,7 @@ public sealed class CollectorForm : Form
         notifyIcon = new NotifyIcon
         {
             Icon = SystemIcons.Application,
-            Text = catalogMode ? "PCARS2 Catalog Collector" : "PCARS2 Time Trial Collector",
+            Text = catalogMode ? "PCARS2 Catalog Collector" : collectorTitle,
             Visible = true
         };
         notifyIcon.DoubleClick += (_, _) => RestoreWindow();
@@ -71,7 +79,7 @@ public sealed class CollectorForm : Form
 
         var title = new Label
         {
-            Text = catalogMode ? "PCARS2  /  VEHICLE & TRACK CATALOG" : "PCARS2  /  TIME TRIAL COLLECTOR",
+            Text = catalogMode ? "PCARS2  /  VEHICLE & TRACK CATALOG" : collectorTitle.ToUpperInvariant(),
             Dock = DockStyle.Fill,
             Font = new Font("Segoe UI", 18F, FontStyle.Bold),
             ForeColor = Color.FromArgb(215, 243, 106),
@@ -82,7 +90,7 @@ public sealed class CollectorForm : Form
         var services = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1, Padding = new Padding(0, 8, 0, 8) };
         services.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
         services.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
-        services.Controls.Add(ServicePanel("CREST2", crest2Value), 0, 0);
+        services.Controls.Add(ServicePanel(catalogMode ? "CREST2" : telemetrySourceName, crest2Value), 0, 0);
         services.Controls.Add(ServicePanel(catalogMode ? "UNIQUE NAMES  /  logs/vehicle-track-catalog.csv" : "BACKEND", backendValue), 1, 0);
         root.Controls.Add(services, 0, 1);
 

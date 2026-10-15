@@ -73,6 +73,7 @@ public sealed class Crest2Client(HttpClient httpClient, CollectorStatus status, 
                 return null;
             }
 
+            var viewedParticipant = Participants?.ViewedParticipant;
             return new TelemetrySnapshot(
                 Buildinfo.Version,
                 Participants?.PlayerName ?? "unknown",
@@ -84,6 +85,8 @@ public sealed class Crest2Client(HttpClient httpClient, CollectorStatus status, 
                 EventInformation.TrackLocation,
                 EventInformation.TrackVariation,
                 Timings.LapInvalidated,
+                viewedParticipant is { LapsInvalidated: not 0 },
+                viewedParticipant?.LapsCompleted ?? 0,
                 Timings.BestLapTime,
                 Timings.LastLapTime,
                 Timings.CurrentTime,
@@ -119,14 +122,21 @@ public sealed class Crest2Client(HttpClient httpClient, CollectorStatus status, 
         [JsonPropertyName("mParticipantInfo")]
         public List<ParticipantInfo> ParticipantInfo { get; init; } = [];
 
-        public string PlayerName => ViewedParticipantIndex >= 0 && ViewedParticipantIndex < ParticipantInfo.Count
-            ? ParticipantInfo[ViewedParticipantIndex].Name
-            : "unknown";
+        public ParticipantInfo? ViewedParticipant =>
+            ViewedParticipantIndex >= 0 && ViewedParticipantIndex < ParticipantInfo.Count
+                ? ParticipantInfo[ViewedParticipantIndex]
+                : null;
+
+        public string PlayerName => ViewedParticipant?.Name ?? "unknown";
     }
     private sealed class ParticipantInfo
     {
         [JsonPropertyName("mName")]
         public string Name { get; init; } = "";
+        [JsonPropertyName("mLapsCompleted")]
+        public uint LapsCompleted { get; init; }
+        [JsonPropertyName("mLapsInvalidated")]
+        public int LapsInvalidated { get; init; }
     }
     private sealed class EventInformation
     {

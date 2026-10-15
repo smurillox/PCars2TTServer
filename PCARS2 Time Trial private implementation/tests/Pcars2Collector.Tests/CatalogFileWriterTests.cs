@@ -46,6 +46,8 @@ public sealed class CatalogFileWriterTests
         trackLocation,
         trackVariation,
         false,
+        false,
+        0,
         0,
         0,
         0,

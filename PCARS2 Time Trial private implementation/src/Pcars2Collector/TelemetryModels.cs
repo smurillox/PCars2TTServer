@@ -11,6 +11,8 @@ public sealed record TelemetrySnapshot(
     string TrackLocation,
     string TrackVariation,
     bool LapInvalidated,
+    bool PlayerLapInvalidated,
+    uint LapsCompleted,
     double BestLapTimeSeconds,
     double LastLapTimeSeconds,
     double CurrentTimeSeconds,
